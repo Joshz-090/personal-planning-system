@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection - users can read/write their own profile
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      // Goals subcollection - users can read/write their own goals
+      match /goals/{goalId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // Weekly subcollection - users can read/write their own weekly data
+      match /weekly/{weekId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // Daily subcollection - users can read/write their own daily tasks
+      match /daily/{dateId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // Weekly Board subcollection - users can read/write their own weekly board data
+      match /weeklyBoard/{weekId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+  }
+}
+
