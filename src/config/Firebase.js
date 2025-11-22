@@ -5,14 +5,15 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
+// Uses environment variables for security (fallback to hardcoded values for development)
 const firebaseConfig = {
-  apiKey: "AIzaSyB6vdk4n3sKHfxw5UGhr9SinAOy6D5yvBU",
-  authDomain: "personal-planning-system.firebaseapp.com",
-  projectId: "personal-planning-system",
-  storageBucket: "personal-planning-system.firebasestorage.app",
-  messagingSenderId: "949058242760",
-  appId: "1:949058242760:web:2c31e3de85864f21493dfd",
-  measurementId: "G-RTEJMGK46L"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyB6vdk4n3sKHfxw5UGhr9SinAOy6D5yvBU",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "personal-planning-system.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "personal-planning-system",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "personal-planning-system.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "949058242760",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:949058242760:web:2c31e3de85864f21493dfd",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-RTEJMGK46L"
 };
 
 // Initialize Firebase
