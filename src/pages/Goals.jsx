@@ -1,28 +1,38 @@
-import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useGoals } from '../hooks/useGoals';
-import GoalCard from '../components/GoalCard';
-import { FiPlus, FiX } from 'react-icons/fi';
+import { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useGoals } from "../hooks/useGoals";
+import GoalCard from "../components/GoalCard";
+import { FiPlus, FiX } from "react-icons/fi";
 
 const Goals = () => {
   const { currentUser } = useAuth();
-  const [selectedCategory, setSelectedCategory] = useState('month');
+  const [selectedCategory, setSelectedCategory] = useState("month");
   const [showAddGoal, setShowAddGoal] = useState(false);
-  const [newGoalTitle, setNewGoalTitle] = useState('');
-  const [newGoalDescription, setNewGoalDescription] = useState('');
+  const [newGoalTitle, setNewGoalTitle] = useState("");
+  const [newGoalDescription, setNewGoalDescription] = useState("");
   const [editingGoal, setEditingGoal] = useState(null);
 
-  const { goals, loading, addGoal, updateGoal, toggleChecklistItem, deleteGoal } = useGoals(
-    currentUser?.uid,
-    selectedCategory
-  );
+  const {
+    goals,
+    loading,
+    addGoal,
+    updateGoal,
+    toggleChecklistItem,
+    deleteGoal,
+  } = useGoals(currentUser?.uid, selectedCategory);
 
   const categories = [
-    { id: 'month', label: 'Monthly Goals' },
-    { id: 'quarter', label: '3-Month Goals' },
-    { id: 'half', label: '6-Month Goals' },
-    { id: 'year', label: 'Yearly Goals' }
+    { id: "month", label: "Monthly Goals" },
+    { id: "quarter", label: "3-Month Goals" },
+    { id: "half", label: "6-Month Goals" },
+    { id: "year", label: "Yearly Goals" },
   ];
+
+  const resetForm = () => {
+    setEditingGoal(null);
+    setNewGoalTitle("");
+    setNewGoalDescription("");
+  };
 
   const handleAddGoal = async (e) => {
     e.preventDefault();
@@ -31,172 +41,152 @@ const Goals = () => {
     const result = await addGoal({
       title: newGoalTitle.trim(),
       description: newGoalDescription.trim(),
-      checklist: []
+      checklist: [],
     });
 
     if (result.success) {
-      setNewGoalTitle('');
-      setNewGoalDescription('');
+      resetForm();
       setShowAddGoal(false);
     }
   };
 
-  const handleEditGoal = async (goal) => {
+  const handleEditGoal = (goal) => {
     setEditingGoal(goal);
     setNewGoalTitle(goal.title);
-    setNewGoalDescription(goal.description || '');
+    setNewGoalDescription(goal.description || "");
     setShowAddGoal(true);
   };
 
   const handleUpdateGoal = async (e) => {
     e.preventDefault();
-    if (!newGoalTitle.trim() || !editingGoal) return;
+    if (!editingGoal) return;
 
     const result = await updateGoal(editingGoal.id, {
       title: newGoalTitle.trim(),
-      description: newGoalDescription.trim()
+      description: newGoalDescription.trim(),
     });
 
     if (result.success) {
-      setEditingGoal(null);
-      setNewGoalTitle('');
-      setNewGoalDescription('');
+      resetForm();
       setShowAddGoal(false);
     }
   };
 
-  const handleDeleteGoal = async (goalId) => {
-    if (window.confirm('Are you sure you want to delete this goal?')) {
-      await deleteGoal(goalId);
-    }
-  };
-
-  const handleAddChecklistItem = async (goalId, itemText) => {
-    const goal = goals.find(g => g.id === goalId);
-    if (!goal) return;
-
-    const checklist = goal.checklist || [];
-    const newItem = {
-      text: itemText,
-      completed: false
-    };
-
-    await updateGoal(goalId, {
-      checklist: [...checklist, newItem]
-    });
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-4">
+      <div className="max-w-6xl mx-auto px-4 pb-16">
+        {/* Page Title */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Long-Term Goals
           </h1>
 
-          {/* Category Tabs */}
-          <div className="flex space-x-2 mb-6">
-            {categories.map((category) => (
+          {/* Category Filter Tabs */}
+          <div className="mt-4 flex space-x-3 overflow-x-auto pb-2">
+            {categories.map((cat) => (
               <button
-                key={category.id}
+                key={cat.id}
                 onClick={() => {
-                  setSelectedCategory(category.id);
+                  setSelectedCategory(cat.id);
                   setShowAddGoal(false);
-                  setEditingGoal(null);
+                  resetForm();
                 }}
-                className={`px-6 py-2 rounded-md font-medium transition ${
-                  selectedCategory === category.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                }`}
+                className={`
+                  px-5 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap
+                  ${
+                    selectedCategory === cat.id
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }
+                `}
               >
-                {category.label}
+                {cat.label}
               </button>
             ))}
           </div>
-
-          {/* Add Goal Button */}
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={() => {
-                setEditingGoal(null);
-                setNewGoalTitle('');
-                setNewGoalDescription('');
-                setShowAddGoal(true);
-              }}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-            >
-              <FiPlus className="w-5 h-5" />
-              <span>Add Goal</span>
-            </button>
-          </div>
         </div>
 
-        {/* Add/Edit Goal Form */}
+        {/* Add Goal Button */}
+        <div className="flex justify-end mb-6">
+          <button
+            onClick={() => {
+              resetForm();
+              setShowAddGoal(true);
+            }}
+            className="flex items-center px-5 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition shadow-md"
+          >
+            <FiPlus className="w-5 h-5 mr-2" />
+            Add Goal
+          </button>
+        </div>
+
+        {/* Add/Edit Form */}
         {showAddGoal && (
-          <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 animate-fadeIn">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {editingGoal ? 'Edit Goal' : 'New Goal'}
+                {editingGoal ? "Edit Goal" : "New Goal"}
               </h3>
               <button
                 onClick={() => {
                   setShowAddGoal(false);
-                  setEditingGoal(null);
-                  setNewGoalTitle('');
-                  setNewGoalDescription('');
+                  resetForm();
                 }}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
               >
-                <FiX className="w-5 h-5" />
+                <FiX className="w-6 h-6" />
               </button>
             </div>
+
             <form onSubmit={editingGoal ? handleUpdateGoal : handleAddGoal}>
               <div className="space-y-4">
+                {/* Title */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
                     Title *
                   </label>
                   <input
                     type="text"
                     value={newGoalTitle}
                     onChange={(e) => setNewGoalTitle(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter goal title"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    placeholder="Goal title..."
                     required
                   />
                 </div>
+
+                {/* Description */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
                     Description
                   </label>
                   <textarea
+                    rows={4}
                     value={newGoalDescription}
                     onChange={(e) => setNewGoalDescription(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                     placeholder="Describe your goal..."
-                    rows="4"
                   />
                 </div>
-                <div className="flex justify-end space-x-2">
+
+                {/* Buttons */}
+                <div className="flex justify-end space-x-3">
                   <button
                     type="button"
                     onClick={() => {
                       setShowAddGoal(false);
-                      setEditingGoal(null);
-                      setNewGoalTitle('');
-                      setNewGoalDescription('');
+                      resetForm();
                     }}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                   >
                     Cancel
                   </button>
+
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
                   >
-                    {editingGoal ? 'Update' : 'Add'} Goal
+                    {editingGoal ? "Update Goal" : "Add Goal"}
                   </button>
                 </div>
               </div>
@@ -206,13 +196,15 @@ const Goals = () => {
 
         {/* Goals List */}
         {loading ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-gray-400">Loading goals...</p>
+          <div className="text-center py-16">
+            <p className="text-gray-600 dark:text-gray-400 animate-pulse">
+              Loading goals...
+            </p>
           </div>
         ) : goals.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+          <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl shadow-md">
             <p className="text-gray-600 dark:text-gray-400">
-              No {categories.find(c => c.id === selectedCategory)?.label.toLowerCase()} yet. Add one to get started!
+              No goals yet in this category. Add one to get started!
             </p>
           </div>
         ) : (
@@ -222,7 +214,7 @@ const Goals = () => {
                 key={goal.id}
                 goal={goal}
                 onEdit={handleEditGoal}
-                onDelete={handleDeleteGoal}
+                onDelete={deleteGoal}
                 onToggleChecklist={toggleChecklistItem}
               />
             ))}
@@ -234,4 +226,3 @@ const Goals = () => {
 };
 
 export default Goals;
-

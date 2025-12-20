@@ -367,10 +367,10 @@ const WeeklyTimeBoard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 w-full">
+      <div className="w-full px-0 py-6">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-6 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
@@ -481,119 +481,124 @@ const WeeklyTimeBoard = () => {
 
         {/* Error Display */}
         {error && (
-          <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg">
-            <p className="font-medium">Error: {error}</p>
+          <div className="mb-4 px-4 sm:px-6 lg:px-8">
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg">
+              <p className="font-medium">Error: {error}</p>
+            </div>
           </div>
         )}
 
-        {/* Grid Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="overflow-x-auto">
+        {/* Grid Table - ROWS FOR DAYS */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mx-4 sm:mx-6 lg:mx-8">
+          <div className="overflow-x-auto w-full">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600">
                   <th className="sticky left-0 z-10 bg-gray-50 dark:bg-gray-700/50 border-r border-gray-200 dark:border-gray-600 p-3 text-left text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 min-w-[140px] sm:min-w-[160px]">
-                    Time Slot
+                    Day / Time
                   </th>
-                  {dayNames.map((day, index) => (
+                  {boardData?.timeSlots && boardData.timeSlots.map((slot) => (
                     <th
-                      key={index}
+                      key={slot.id}
                       className="border-r border-gray-200 dark:border-gray-600 last:border-r-0 p-2 sm:p-3 text-center text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 min-w-[140px] sm:min-w-[160px]"
                     >
-                      <div className="font-semibold">{day}</div>
-                      <div className="text-xs font-normal text-gray-500 dark:text-gray-400 mt-1">
-                        {calendarPreference === 'ethiopian' 
-                          ? formatDate(weekDates[index], 'ethiopian')
-                          : weekDates[index].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                        }
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                          {formatTimeDisplay(slot.startTime)} - {formatTimeDisplay(slot.endTime)}
+                        </div>
+                        <button
+                          onClick={() => handleDeleteTimeSlot(slot.id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition flex-shrink-0"
+                          title="Delete time slot"
+                        >
+                          <FiTrash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {boardData?.timeSlots && boardData.timeSlots.length > 0 ? (
-                  boardData.timeSlots.map((slot) => (
-                    <tr key={slot.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 border-b border-gray-200 dark:border-gray-600 last:border-b-0 transition-colors">
-                      <td className="sticky left-0 z-10 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-600 p-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
-                            {formatTimeDisplay(slot.startTime)} - {formatTimeDisplay(slot.endTime)}
-                          </div>
+                {dayKeys.map((day, dayIndex) => (
+                  <tr key={day} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 border-b border-gray-200 dark:border-gray-600 last:border-b-0 transition-colors">
+                    <td className="sticky left-0 z-10 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-600 p-3">
+                      <div className="text-center">
+                        <div className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">
+                          {dayNames[dayIndex]}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {calendarPreference === 'ethiopian' 
+                            ? formatDate(weekDates[dayIndex], 'ethiopian')
+                            : weekDates[dayIndex].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                          }
+                        </div>
+                      </div>
+                    </td>
+                    {boardData?.timeSlots && boardData.timeSlots.map((slot) => (
+                      <td
+                        key={`${day}_${slot.id}`}
+                        className="border-r border-gray-200 dark:border-gray-600 last:border-r-0 p-2 sm:p-3 min-h-[100px] align-top bg-white dark:bg-gray-800"
+                      >
+                        <div className="space-y-2">
+                          {getActivitiesForCell(day, slot.id).map((activity) => (
+                            <div
+                              key={activity.id}
+                              className={`p-2.5 rounded-lg text-xs ${
+                                colorOptions.find(c => c.value === activity.color)?.class || 'bg-blue-500'
+                              } bg-opacity-10 dark:bg-opacity-20 border-l-4 ${
+                                colorOptions.find(c => c.value === activity.color)?.class || 'border-blue-500'
+                              } border-opacity-100 hover:shadow-sm transition-shadow`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-semibold text-gray-900 dark:text-white truncate">
+                                    {activity.title}
+                                  </div>
+                                  {activity.description && (
+                                    <div className="text-gray-600 dark:text-gray-400 mt-1 text-xs line-clamp-2">
+                                      {activity.description}
+                                    </div>
+                                  )}
+                                  <div className="mt-1.5">
+                                    <span className="inline-block px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs capitalize">
+                                      {activity.category}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex space-x-1 flex-shrink-0">
+                                  <button
+                                    onClick={() => openActivityModal(day, slot.id, activity)}
+                                    className="p-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition"
+                                    title="Edit"
+                                  >
+                                    <FiEdit2 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteActivity(day, slot.id, activity.id)}
+                                    className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
+                                    title="Delete"
+                                  >
+                                    <FiTrash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                           <button
-                            onClick={() => handleDeleteTimeSlot(slot.id)}
-                            className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition flex-shrink-0"
-                            title="Delete time slot"
+                            onClick={() => openActivityModal(day, slot.id)}
+                            className="w-full p-2 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 transition flex items-center justify-center space-x-1.5 font-medium"
                           >
-                            <FiTrash2 className="w-3.5 h-3.5" />
+                            <FiPlus className="w-3.5 h-3.5" />
+                            <span>Add Activity</span>
                           </button>
                         </div>
                       </td>
-                      {dayKeys.map((day) => (
-                        <td
-                          key={`${day}_${slot.id}`}
-                          className="border-r border-gray-200 dark:border-gray-600 last:border-r-0 p-2 sm:p-3 min-h-[100px] align-top bg-white dark:bg-gray-800"
-                        >
-                          <div className="space-y-2">
-                            {getActivitiesForCell(day, slot.id).map((activity) => (
-                              <div
-                                key={activity.id}
-                                className={`p-2.5 rounded-lg text-xs ${
-                                  colorOptions.find(c => c.value === activity.color)?.class || 'bg-blue-500'
-                                } bg-opacity-10 dark:bg-opacity-20 border-l-4 ${
-                                  colorOptions.find(c => c.value === activity.color)?.class || 'border-blue-500'
-                                } border-opacity-100 hover:shadow-sm transition-shadow`}
-                              >
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-semibold text-gray-900 dark:text-white truncate">
-                                      {activity.title}
-                                    </div>
-                                    {activity.description && (
-                                      <div className="text-gray-600 dark:text-gray-400 mt-1 text-xs line-clamp-2">
-                                        {activity.description}
-                                      </div>
-                                    )}
-                                    <div className="mt-1.5">
-                                      <span className="inline-block px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs capitalize">
-                                        {activity.category}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="flex space-x-1 flex-shrink-0">
-                                    <button
-                                      onClick={() => openActivityModal(day, slot.id, activity)}
-                                      className="p-1.5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition"
-                                      title="Edit"
-                                    >
-                                      <FiEdit2 className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteActivity(day, slot.id, activity.id)}
-                                      className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
-                                      title="Delete"
-                                    >
-                                      <FiTrash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                            <button
-                              onClick={() => openActivityModal(day, slot.id)}
-                              className="w-full p-2 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 transition flex items-center justify-center space-x-1.5 font-medium"
-                            >
-                              <FiPlus className="w-3.5 h-3.5" />
-                              <span>Add Activity</span>
-                            </button>
-                          </div>
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                ) : (
+                    ))}
+                  </tr>
+                ))}
+                {(!boardData?.timeSlots || boardData.timeSlots.length === 0) && (
                   <tr>
-                    <td colSpan="8" className="border-0 p-12 text-center">
+                    <td colSpan={boardData?.timeSlots ? boardData.timeSlots.length + 1 : 1} className="border-0 p-12 text-center">
                       <div className="flex flex-col items-center justify-center space-y-3">
                         <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
                           <FiClock className="w-8 h-8 text-gray-400 dark:text-gray-500" />
@@ -770,4 +775,3 @@ const WeeklyTimeBoard = () => {
 };
 
 export default WeeklyTimeBoard;
-
