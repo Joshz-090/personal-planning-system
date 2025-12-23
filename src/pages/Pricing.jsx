@@ -6,8 +6,7 @@ const Pricing = () => {
   const { userProfile } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
             Pricing Plans
@@ -52,7 +51,6 @@ const Pricing = () => {
                 The Free Plan is available forever with no trial period needed. For paid plans, we'll offer a 14-day free trial when they launch.
               </p>
             </div>
-          </div>
         </div>
       </div>
     </div>

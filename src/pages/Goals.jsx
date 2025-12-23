@@ -2,15 +2,24 @@ import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useGoals } from "../hooks/useGoals";
 import GoalCard from "../components/GoalCard";
-import { FiPlus, FiX } from "react-icons/fi";
+import { FiPlus, FiX, FiHelpCircle } from "react-icons/fi";
+import HelpGuide from "../components/HelpGuide";
 
 const Goals = () => {
   const { currentUser } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState("month");
   const [showAddGoal, setShowAddGoal] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [newGoalTitle, setNewGoalTitle] = useState("");
   const [newGoalDescription, setNewGoalDescription] = useState("");
   const [editingGoal, setEditingGoal] = useState(null);
+
+  const helpSteps = [
+    { title: "Set Categories", description: "Choose between Monthly, Quarterly, Half-Yearly or Yearly goal buckets." },
+    { title: "Define Vision", description: "Add your big-picture objectives and brief descriptions." },
+    { title: "Checklist Items", description: "Break down big goals into manageable sub-tasks inside each goal card." },
+    { title: "Stay Focused", description: "Review your goals regularly to stay aligned with your long-term vision." }
+  ];
 
   const {
     goals,
@@ -73,56 +82,63 @@ const Goals = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-4">
-      <div className="max-w-6xl mx-auto px-4 pb-16">
+    <div className="max-w-6xl mx-auto px-4 pb-12 pt-4 sm:pb-16">
         {/* Page Title */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             Long-Term Goals
           </h1>
 
           {/* Category Filter Tabs */}
-          <div className="mt-4 flex space-x-3 overflow-x-auto pb-2">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setSelectedCategory(cat.id);
-                  setShowAddGoal(false);
-                  resetForm();
-                }}
-                className={`
-                  px-5 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap
-                  ${
-                    selectedCategory === cat.id
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  }
-                `}
-              >
-                {cat.label}
-              </button>
-            ))}
+          <div className="mt-4 safe-scroll -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex space-x-1.5 sm:space-x-3 pb-2 min-w-max">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    setSelectedCategory(cat.id);
+                    setShowAddGoal(false);
+                    resetForm();
+                  }}
+                  className={`
+                    px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap active:scale-95
+                    ${
+                      selectedCategory === cat.id
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-slate-100 dark:border-gray-800"
+                    }
+                  `}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Add Goal Button */}
-        <div className="flex justify-end mb-6">
+        <div className="flex flex-col xs:flex-row justify-end mb-6 gap-3">
+          <button
+            onClick={() => setShowHelp(true)}
+            className="flex items-center justify-center px-5 py-2.5 bg-white dark:bg-gray-800 text-slate-500 dark:text-gray-400 rounded-xl font-bold border border-gray-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-700 transition shadow-sm active:scale-95"
+          >
+            <FiHelpCircle className="w-5 h-5 mr-2" />
+            <span className="text-sm">Help Me</span>
+          </button>
           <button
             onClick={() => {
               resetForm();
               setShowAddGoal(true);
             }}
-            className="flex items-center px-5 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition shadow-md"
+            className="flex items-center justify-center px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-500/20 active:scale-95"
           >
             <FiPlus className="w-5 h-5 mr-2" />
-            Add Goal
+            <span className="text-sm">Add Goal</span>
           </button>
         </div>
 
         {/* Add/Edit Form */}
         {showAddGoal && (
-          <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 animate-fadeIn">
+          <div className="mb-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-5 sm:p-6 animate-fadeIn border border-slate-100 dark:border-gray-800">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {editingGoal ? "Edit Goal" : "New Goal"}
@@ -220,7 +236,13 @@ const Goals = () => {
             ))}
           </div>
         )}
-      </div>
+
+        <HelpGuide 
+          isOpen={showHelp} 
+          onClose={() => setShowHelp(false)} 
+          pageName="Long-Term Goals" 
+          steps={helpSteps} 
+        />
     </div>
   );
 };

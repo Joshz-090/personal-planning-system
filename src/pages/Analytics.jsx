@@ -26,6 +26,8 @@ import {
   FiActivity,
   FiBarChart2
 } from 'react-icons/fi';
+import Kenat from 'kenat';
+import { formatDate } from '../utils/ethiopianCalendar';
 
 const Analytics = () => {
   const { currentUser, userProfile } = useAuth();
@@ -79,7 +81,9 @@ const Analytics = () => {
               totalTasks += tasks.length;
               totalCompleted += completed;
               
-              const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+              const dayName = calendarPreference === 'ethiopian'
+                ? formatDate(date, 'ethiopian').split(' ')[1].substring(0, 3) 
+                : date.toLocaleDateString('en-US', { weekday: 'short' });
               dailyData.push({
                 day: dayName,
                 date: dateString,
@@ -97,7 +101,9 @@ const Analytics = () => {
               dayProgress[dayOfWeek].completed += completed;
               dayProgress[dayOfWeek].count += 1;
             } else {
-              const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+              const dayName = calendarPreference === 'ethiopian'
+                ? formatDate(date, 'ethiopian').split(' ')[1].substring(0, 3)
+                : date.toLocaleDateString('en-US', { weekday: 'short' });
               dailyData.push({
                 day: dayName,
                 date: dateString,
@@ -112,12 +118,14 @@ const Analytics = () => {
         }
 
         // Calculate weekly progress (last 8 weeks)
-        const currentWeek = getWeekNumber(today);
+        const currentWeekNum = getWeekNumber(today, calendarPreference);
         for (let i = 7; i >= 0; i--) {
           const weekDate = new Date(today);
           weekDate.setDate(weekDate.getDate() - (i * 7));
-          const weekNum = getWeekNumber(weekDate);
-          const weekId = `${weekDate.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+          const weekNum = getWeekNumber(weekDate, calendarPreference);
+          const weekId = calendarPreference === 'ethiopian' 
+            ? `ETH-${new Kenat(weekDate).getEthiopian().year}-W${String(weekNum).padStart(2, '0')}`
+            : `${weekDate.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
           
           let weekProgress = 0;
           let weekCompleted = 0;
@@ -125,7 +133,9 @@ const Analytics = () => {
           
           // Calculate week progress from daily data
           const weekStart = new Date(weekDate);
-          weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1); // Monday
+          const dow = weekStart.getDay();
+          const offset = dow === 0 ? -6 : 1 - dow;
+          weekStart.setDate(weekStart.getDate() + offset); // Monday
           
           for (let d = 0; d < 7; d++) {
             const dayDate = new Date(weekStart);
@@ -181,13 +191,17 @@ const Analytics = () => {
         let weeklyBoardActivities = 0;
         try {
           // Get current week and previous weeks
-          const currentWeekId = `${today.getFullYear()}-W${String(getWeekNumber(today)).padStart(2, '0')}`;
+          const currentWeekId = calendarPreference === 'ethiopian'
+            ? `ETH-${new Kenat(today).getEthiopian().year}-W${String(getWeekNumber(today, 'ethiopian')).padStart(2, '0')}`
+            : `${today.getFullYear()}-W${String(getWeekNumber(today, 'gregorian')).padStart(2, '0')}`;
           
           for (let i = 0; i < 4; i++) {
             const weekDate = new Date(today);
             weekDate.setDate(weekDate.getDate() - (i * 7));
-            const weekNum = getWeekNumber(weekDate);
-            const weekId = `${weekDate.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+            const weekNum = getWeekNumber(weekDate, calendarPreference);
+            const weekId = calendarPreference === 'ethiopian'
+              ? `ETH-${new Kenat(weekDate).getEthiopian().year}-W${String(weekNum).padStart(2, '0')}`
+              : `${weekDate.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
             
             const boardRef = doc(db, 'users', currentUser.uid, 'weeklyBoard', weekId);
             const boardDoc = await getDoc(boardRef);
@@ -204,7 +218,9 @@ const Analytics = () => {
 
         // Calculate category breakdown from weekly board
         try {
-          const currentWeekId = `${today.getFullYear()}-W${String(getWeekNumber(today)).padStart(2, '0')}`;
+          const currentWeekId = calendarPreference === 'ethiopian'
+            ? `ETH-${new Kenat(today).getEthiopian().year}-W${String(getWeekNumber(today, 'ethiopian')).padStart(2, '0')}`
+            : `${today.getFullYear()}-W${String(getWeekNumber(today, 'gregorian')).padStart(2, '0')}`;
           const boardRef = doc(db, 'users', currentUser.uid, 'weeklyBoard', currentWeekId);
           const boardDoc = await getDoc(boardRef);
           
@@ -279,9 +295,21 @@ const Analytics = () => {
 
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
 
-  const getWeekNumber = (date) => {
+  const getWeekNumber = (date, calendarType = 'gregorian') => {
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
+
+    if (calendarType === 'ethiopian') {
+      try {
+        const kenat = new Kenat(d);
+        const eth = kenat.getEthiopian();
+        const dayOfYear = (eth.month - 1) * 30 + eth.day;
+        return Math.ceil(dayOfYear / 7);
+      } catch (e) {
+        return 1;
+      }
+    }
+
     d.setDate(d.getDate() + 4 - (d.getDay() || 7));
     const yearStart = new Date(d.getFullYear(), 0, 1);
     const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
@@ -290,14 +318,14 @@ const Analytics = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
         <div className="text-gray-600 dark:text-gray-400">Loading analytics...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">

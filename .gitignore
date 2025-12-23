@@ -18,6 +18,12 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
+backend/.env
+
+# Firebase/Service Account keys
+serviceAccount.json
+backend/serviceAccount.json
+*.json.local
 
 # Editor directories and files
 .vscode/*

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { FiSave, FiUser, FiClock, FiCalendar, FiMoon, FiSun } from 'react-icons/fi';
+import { FiSave, FiUser, FiClock, FiCalendar, FiMoon, FiSun, FiTarget, FiHeart, FiEye } from 'react-icons/fi';
+import { formatDate } from '../utils/dateUtils';
 
 const Settings = () => {
   const { currentUser, userProfile, updateProfile } = useAuth();
@@ -11,10 +12,36 @@ const Settings = () => {
     calendarPreference: userProfile?.calendarPreference || 'gregorian',
     themeMode: userProfile?.themeMode || 'light',
     customMessage: userProfile?.customMessage || '',
+    futureSelf: userProfile?.futureSelf || '',
+    morals: userProfile?.morals || '',
+    fiveYearGoal: userProfile?.fiveYearGoal || '',
     countdownDate: userProfile?.countdownDate || ''
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [currentDateEC, setCurrentDateEC] = useState('');
+
+  useEffect(() => {
+    if (userProfile) {
+      setFormData(prev => ({
+        ...prev,
+        ...userProfile,
+        email: userProfile.email || currentUser?.email
+      }));
+    }
+  }, [userProfile, currentUser]);
+
+  useEffect(() => {
+    // Update Ethiopian Date preview
+    if (formData.calendarPreference === 'ethiopian') {
+      const today = new Date();
+      // We pass 'ethiopian' explicitly to force the preview
+      const ecDate = formatDate(today, 'ethiopian'); 
+      setCurrentDateEC(`(Today: ${ecDate})`);
+    } else {
+      setCurrentDateEC('');
+    }
+  }, [formData.calendarPreference]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,21 +69,21 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
           Settings
         </h1>
 
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-8">
           {/* Profile Section */}
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
-              <FiUser className="w-5 h-5" />
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2 border-b border-gray-100 dark:border-gray-700 pb-2">
+              <FiUser className="w-5 h-5 text-blue-500" />
               <span>Profile Information</span>
             </h2>
             
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Full Name
@@ -66,7 +93,7 @@ const Settings = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                   required
                 />
               </div>
@@ -79,35 +106,129 @@ const Settings = () => {
                   type="email"
                   name="email"
                   value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                   disabled
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                 />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Email cannot be changed
-                </p>
               </div>
             </div>
-          </div>
+          </section>
+
+          {/* Life Goals Section (Onboarding Data) */}
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2 border-b border-gray-100 dark:border-gray-700 pb-2">
+              <FiTarget className="w-5 h-5 text-purple-500" />
+              <span>Life Vision & Goals</span>
+            </h2>
+
+            <div className="space-y-6">
+               <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                  <FiEye /> Future Self Vision
+                </label>
+                <textarea
+                  name="futureSelf"
+                  value={formData.futureSelf}
+                  onChange={handleChange}
+                  rows="3"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+                  placeholder="Who do you want to become?"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <FiHeart /> Core Values / Morals
+                  </label>
+                  <input
+                    type="text"
+                    name="morals"
+                    value={formData.morals}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+                    placeholder="e.g. Integrity, Growth..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                    <FiTarget /> 5-Year Goal
+                  </label>
+                  <input
+                    type="text"
+                    name="fiveYearGoal"
+                    value={formData.fiveYearGoal}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+                    placeholder="What is your main target?"
+                  />
+                </div>
+              </div>
+
+               <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Short Motivation / Custom Message
+                </label>
+                <input
+                  type="text"
+                  name="customMessage"
+                  value={formData.customMessage}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Displayed on your dashboard..."
+                />
+              </div>
+            </div>
+          </section>
 
           {/* Preferences Section */}
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
-              <FiClock className="w-5 h-5" />
-              <span>Preferences</span>
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2 border-b border-gray-100 dark:border-gray-700 pb-2">
+              <FiClock className="w-5 h-5 text-indigo-500" />
+              <span>System Preferences</span>
             </h2>
             
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
+                  {formData.themeMode === 'dark' ? <FiMoon /> : <FiSun />}
+                  <span>Theme Mode</span>
+                </label>
+                <select
+                  name="themeMode"
+                  value={formData.themeMode}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                >
+                  <option value="light">Light Mode</option>
+                  <option value="dark">Dark Mode</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
+                  <FiCalendar />
+                  <span>Calendar System {currentDateEC && <span className="text-xs text-indigo-500 ml-2">{currentDateEC}</span>}</span>
+                </label>
+                <select
+                  name="calendarPreference"
+                  value={formData.calendarPreference}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                >
+                  <option value="gregorian">Gregorian (GC)</option>
+                  <option value="ethiopian">Ethiopian (EC)</option>
+                </select>
+              </div>
+
+              <div>
+                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Time Format
                 </label>
                 <select
                   name="timeFormat"
                   value={formData.timeFormat}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
                 >
                   <option value="12">12-hour (AM/PM)</option>
                   <option value="24">24-hour</option>
@@ -115,88 +236,26 @@ const Settings = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
-                  <FiCalendar className="w-4 h-4" />
-                  <span>Calendar Preference</span>
-                </label>
-                <select
-                  name="calendarPreference"
-                  value={formData.calendarPreference}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="gregorian">Gregorian (European)</option>
-                  <option value="ethiopian">Ethiopian Calendar</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center space-x-2">
-                  {formData.themeMode === 'dark' ? (
-                    <FiMoon className="w-4 h-4" />
-                  ) : (
-                    <FiSun className="w-4 h-4" />
-                  )}
-                  <span>Theme Mode</span>
-                </label>
-                <select
-                  name="themeMode"
-                  value={formData.themeMode}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Custom Message Section */}
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-              Custom Message / Countdown
-            </h2>
-            
-            <div className="space-y-4">
-              <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Custom Message
-                </label>
-                <textarea
-                  name="customMessage"
-                  value={formData.customMessage}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter your motivation message or big event..."
-                  rows="3"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Countdown Date (optional)
+                  5-Year Plan Countdown Target
                 </label>
                 <input
                   type="datetime-local"
                   name="countdownDate"
                   value={formData.countdownDate}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Set a target date for countdown timer
-                </p>
               </div>
             </div>
-          </div>
+          </section>
 
           {/* Save Button */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between pt-4">
             {message && (
-              <p className={`text-sm ${
+              <p className={`text-sm font-medium ${
                 message.includes('Error') 
-                  ? 'text-red-600 dark:text-red-400' 
+                  ? 'text-red-500 dark:text-red-400' 
                   : 'text-green-600 dark:text-green-400'
               }`}>
                 {message}
@@ -205,10 +264,10 @@ const Settings = () => {
             <button
               type="submit"
               disabled={saving}
-              className="ml-auto flex items-center space-x-2 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="ml-auto flex items-center space-x-2 px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition shadow-lg hover:shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <FiSave className="w-5 h-5" />
-              <span>{saving ? 'Saving...' : 'Save Settings'}</span>
+              <span>{saving ? 'Saving...' : 'Save Changes'}</span>
             </button>
           </div>
         </form>

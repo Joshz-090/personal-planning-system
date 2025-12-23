@@ -6,7 +6,7 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../config/Firebase';
 
 const AuthContext = createContext({});
@@ -117,18 +117,47 @@ export const AuthProvider = ({ children }) => {
 
   // Monitor auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
-      if (user) {
-        await loadUserProfile(user.uid);
-      } else {
-        setUserProfile(null);
-      }
       setLoading(false);
     });
-
     return unsubscribe;
   }, []);
+
+  // Real-time listener for user profile
+  useEffect(() => {
+    let unsubscribe = () => {};
+    
+    if (currentUser) {
+      unsubscribe = onSnapshot(doc(db, 'users', currentUser.uid), (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          // Merge root data with profile/settings for convenience
+          setUserProfile({ 
+            id: docSnap.id, 
+            ...data, 
+            ...(data.profile || {}),
+            ...(data.settings || {})
+          });
+        }
+      });
+    }
+
+    return () => unsubscribe();
+  }, [currentUser]);
+
+  // Helper for authorized API calls
+  const authFetch = async (url, options = {}) => {
+    if (!currentUser) throw new Error('Not authenticated');
+    
+    const token = await currentUser.getIdToken();
+    const headers = {
+      ...options.headers,
+      'Authorization': `Bearer ${token}`
+    };
+
+    return fetch(url, { ...options, headers });
+  };
 
   const value = {
     currentUser,
@@ -138,7 +167,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     resetPassword,
     updateProfile,
-    loadUserProfile
+    loadUserProfile,
+    authFetch
   };
 
   return (

@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+:root {
+  color-scheme: light dark;
+}
+
+/* Force light scheme default if class is missing, to override system dark preference if needed */
+html:not(.dark) {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
 @layer base {
   *,
   *::before,
@@ -13,5 +25,37 @@
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-white transition-colors duration-300;
+  }
+
+  /* Custom Scrollbar for premium feel */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 dark:bg-gray-800 rounded-full hover:bg-slate-300 dark:hover:bg-gray-700 transition-colors;
+  }
+}
+
+@layer components {
+  /* Helper for horizontal scrolling on mobile */
+  .safe-scroll {
+    @apply overflow-x-auto overflow-y-hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  /* Premium Card mobile refinement */
+  .mobile-card {
+    @apply p-4 sm:p-6 rounded-2xl sm:rounded-3xl;
+  }
+
+  /* Content area inner padding refinement */
+  .content-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 }

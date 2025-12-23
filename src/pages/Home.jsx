@@ -1,9 +1,11 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import NavBar from "../components/NavBar";
-import Sidebar from "../components/Sidebar";
 import CountdownCard from "../components/CountdownCard";
 import PricingBanner from "../components/PricingBanner";
+import QuickPlanWidget from "../components/QuickPlanWidget";
+import ProgressBar from "../components/ProgressBar";
 
 import {
   FiCalendar,
@@ -11,111 +13,26 @@ import {
   FiBarChart2,
   FiCheckCircle,
 } from "react-icons/fi";
+import { formatDate } from "../utils/dateUtils";
 
 const Home = () => {
   const { currentUser, userProfile } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect logic
+  useEffect(() => {
+    if (currentUser && userProfile) {
+      if (!userProfile.onboardingCompleted) {
+        navigate('/onboarding');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [currentUser, userProfile, navigate]);
 
   /* ---------------------------------------------------
-     AUTHENTICATED USER (DASHBOARD HOME)
+     LANDING PAGE (UNAUTHENTICATED)
   ---------------------------------------------------- */
-  if (currentUser) {
-    return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-        <NavBar />
-
-        <div className="flex pt-16">
-          {/* Sidebar */}
-          <Sidebar />
-
-          {/* Main Content */}
-          <main className="flex-1 p-6 md:p-10 max-w-7xl mx-auto">
-
-            {/* Hero */}
-            <section className="text-center mb-14">
-              <h1 className="
-                text-4xl md:text-5xl font-extrabold 
-                text-gray-900 dark:text-white 
-                drop-shadow-sm
-              ">
-                Welcome back, {userProfile?.name || "User"}
-              </h1>
-
-              <p className="text-lg text-gray-600 dark:text-gray-400 mt-3">
-                Organize your days, weeks, and long-term goals — all in one place.
-              </p>
-
-              {userProfile?.customMessage && (
-                <div className="
-                  mt-8 p-6 rounded-2xl 
-                  bg-blue-100/60 dark:bg-blue-900/20 
-                  border border-blue-300/40 dark:border-blue-800/30
-                  backdrop-blur-xl shadow-sm
-                  max-w-xl mx-auto
-                ">
-                  <p className="text-lg font-medium text-blue-900 dark:text-blue-200">
-                    {userProfile.customMessage}
-                  </p>
-                </div>
-              )}
-
-              {userProfile?.countdownDate && (
-                <div className="mt-10">
-                  <CountdownCard
-                    targetDate={userProfile.countdownDate}
-                    message={userProfile.customMessage}
-                  />
-                </div>
-              )}
-            </section>
-
-            {/* Quick Action Cards */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
-              <ActionCard
-                to="/daily"
-                icon={FiCalendar}
-                iconColor="text-blue-600 dark:text-blue-400"
-                title="Daily Planner"
-                description="Manage up to 20 tasks per day"
-              />
-
-              <ActionCard
-                to="/weekly"
-                icon={FiBarChart2}
-                iconColor="text-purple-600 dark:text-purple-400"
-                title="Weekly Planner"
-                description="Track your weekly progress"
-              />
-
-              <ActionCard
-                to="/goals"
-                icon={FiTarget}
-                iconColor="text-green-600 dark:text-green-400"
-                title="Goals"
-                description="Set and track long-term goals"
-              />
-
-              <ActionCard
-                to="/dashboard"
-                icon={FiCheckCircle}
-                iconColor="text-orange-600 dark:text-orange-400"
-                title="Dashboard"
-                description="View analytics & insights"
-              />
-            </section>
-
-            {/* Pricing */}
-            <section className="mb-20">
-              <h2 className="text-3xl font-bold text-center mb-10 text-gray-900 dark:text-white">
-                Your Plan
-              </h2>
-
-              <PricingBanner currentPlan={userProfile?.plan || "free"} />
-            </section>
-          </main>
-        </div>
-      </div>
-    );
-  }
 
   /* ---------------------------------------------------
      UNAUTHENTICATED USER (LANDING PAGE)
