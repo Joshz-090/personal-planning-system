@@ -10,7 +10,7 @@ const app = express();
 // Middleware
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://shcadule.vercel.app', // Placeholder - User should update this
+  'https://personal-planning-system.vercel.app',
   process.env.FRONTEND_URL
 ].filter(Boolean);
 

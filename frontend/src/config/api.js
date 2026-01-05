@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://shcadule-backend.onrender.com'; // Default to Render URL in case env is missing
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://personal-planning-system.onrender.com';
 
 export const API_ENDPOINTS = {
   BLOGS: `${API_BASE_URL}/api/blog`,

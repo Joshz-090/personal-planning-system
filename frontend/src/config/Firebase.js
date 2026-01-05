@@ -17,6 +17,10 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
+if (!import.meta.env.VITE_FIREBASE_PROJECT_ID) {
+  console.error("Firebase Project ID is missing! Make sure to add VITE_FIREBASE_PROJECT_ID to your Environment Variables.");
+}
+
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
